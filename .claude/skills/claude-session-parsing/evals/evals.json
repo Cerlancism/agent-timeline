@@ -1,0 +1,47 @@
+{
+  "skill_name": "claude-session-parsing",
+  "evals": [
+    {
+      "id": 0,
+      "name": "subagent-summary",
+      "prompt": "What happened in claude code session 3dd0f104-60f1-4202-8e0b-64b212638b5c? I want to know what I asked, what the main agent did, and what each subagent did (who spawned who, which model, how long). Write the answer to report.md",
+      "expected_output": "A markdown report naming the single human prompt (agentic-quality-subtitle practice run), the 7 subagents in a tree (orchestrator -> on-screen coordinator -> sweep/frame/bounds, pipeline, reviewer), their models and durations, and the outcome (review done, 20 English fixes).",
+      "files": [],
+      "assertions": [
+        "Names the human prompt: an agentic-quality-subtitle practice run for shime01_test3",
+        "Lists all 7 subagents (orchestrator, on-screen coordinator, sweep, frame, bounds, pipeline, reviewer)",
+        "Parent relationships are right: orchestrator spawned coordinator, pipeline and reviewer; coordinator spawned sweep, frame and bounds",
+        "Models are right: reviewer on opus, bounds on haiku, the other five on sonnet, main session on opus",
+        "Gives a duration for each subagent",
+        "States the outcome: review finished with 20 English fixes and 6 on-screen fixes"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "cost-and-tools",
+      "prompt": "for session 62531233-ed07-42fb-86ff-bf91e715deef in ~/.claude/projects: how much did it cost in USD, how long did it run wall-clock, how many subagents did it spawn, and which tools were called most in the main transcript? Save to answer.md",
+      "expected_output": "Cost $77.07 from cost-state (not a per-line sum), span about 2h57m, 139 subagent transcripts, tools Agent x26 Edit x16 Bash x12 TaskStop x5 AskUserQuestion x1.",
+      "files": [],
+      "assertions": [
+        "Cost is reported as about $77.07 (from the cost-state record)",
+        "Wall-clock duration is about 2h57m (first to last timestamp on 2026-10-24, 09:36 to 12:33 UTC)",
+        "Subagent count is 139 transcripts",
+        "Tool ranking in the main transcript is Agent 26, Edit 16, Bash 12, TaskStop 5, AskUserQuestion 1 (counted once per tool_use block, not per line)"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "export-json",
+      "prompt": "I'm building a timeline viewer for my claude code sessions. Take session 1b8b56a3-fc2c-439d-ac89-498a1d5348f8 and produce events.json: a chronological array of events with timestamp, kind (user prompt / assistant reply / tool call), text, and for tool calls the tool name and whether it errored. Only real prompts I typed should count as user prompts, not tool results or system-injected stuff. Also tell me the total output tokens for the session without double counting.",
+      "expected_output": "events.json with 25 human prompts (not 97 user records), assistant replies deduped by message id (not 127 lines), 64 tool calls with names and error flag (1 error), sorted by timestamp; output tokens 55466 deduped by message id.",
+      "files": [],
+      "assertions": [
+        "events.json is a valid JSON array sorted by timestamp",
+        "User-prompt events number 25 (plus or minus 1), not the 97 user records in the file",
+        "Tool-call events number 64 with a tool name each, and exactly one is flagged as an error",
+        "Assistant reply events are deduplicated by message id: 27 messages contain prose (82 distinct messages total), so a count above 82 or near 127 means lines were not merged",
+        "Total output tokens reported as 55466 (deduped by message id), not the per-line sum of about 99900"
+      ]
+    }
+  ]
+}

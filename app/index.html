@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Agent Timeline</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml" sizes="any">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<section id="landing">
+  <header class="landing-head">
+    <div class="landing-title">
+      <span class="eyebrow">Local session explorer</span>
+      <h1>Agent Timeline</h1>
+      <p id="source" class="muted">No directory mounted</p>
+    </div>
+    <div class="landing-actions">
+      <button id="mount-btn" type="button" aria-haspopup="dialog">Add directory…</button>
+      <button id="open-btn" type="button">Open files…</button>
+    </div>
+    <p id="landing-msg" class="msg" hidden></p>
+    <ul id="directory-sources" class="directory-sources" aria-label="Transcript directories" hidden></ul>
+  </header>
+  <div class="landing-tools">
+    <input id="filter" type="search" aria-label="Filter sessions" placeholder="Filter sessions: title, prompt, id, directory, project" autocomplete="off" spellcheck="false">
+    <button id="refresh-btn" type="button" title="Reload the list">Refresh</button>
+  </div>
+  <div id="pick-bar" class="pick-bar empty" role="region" aria-label="Selected sessions">
+    <span class="pick-hint">Tick sessions to open several together</span>
+    <span id="pick-count" class="pick-count"></span>
+    <span id="pick-chips" class="pick-chips"></span>
+    <button id="pick-open-btn" type="button">Open together</button>
+    <button id="pick-clear-btn" type="button" title="Clear the selection">Clear</button>
+  </div>
+  <div class="list-heading"><span>Sessions</span><span>Latest activity</span></div>
+  <ol id="session-list" class="session-list" aria-label="Sessions"></ol>
+  <div class="landing-foot">
+    <button id="more-btn" type="button" hidden>Load more</button>
+    <p id="list-end" class="muted" hidden>No more sessions</p>
+  </div>
+</section>
+
+<dialog id="directory-dialog" aria-labelledby="directory-dialog-title">
+  <div class="dialog-head">
+    <h2 id="directory-dialog-title">Add directory</h2>
+    <button id="directory-dialog-close" type="button" aria-label="Close">×</button>
+  </div>
+  <div class="directory-dialog-body">
+    <p>Choose a transcript directory. Sessions from all added directories appear together.</p>
+    <p class="muted">These directories may be hidden. Copy a suggested path and paste it into the directory picker's address bar.</p>
+    <div class="directory-path"><span>Claude Code</span><code data-suggested-path="Claude"></code><button type="button" data-copy-path="Claude" aria-label="Copy Claude directory path">Copy</button></div>
+    <div class="directory-path"><span>Codex</span><code data-suggested-path="Codex"></code><button type="button" data-copy-path="Codex" aria-label="Copy Codex directory path">Copy</button></div>
+    <p class="muted">For Codex, choose <code>.codex</code> to include active and archived sessions, or your custom <code>CODEX_HOME</code> directory. You can also select <code>sessions</code>, <code>archived_sessions</code>, or a dated subdirectory.</p>
+    <p class="muted">Directories are read only. Removing a directory from this viewer leaves its files untouched.</p>
+    <p id="directory-dialog-msg" class="msg" role="status" hidden></p>
+    <div class="directory-dialog-actions"><button id="directory-dialog-cancel" type="button">Cancel</button><button id="choose-directory-btn" type="button">Choose directory…</button></div>
+  </div>
+</dialog>
+
+<section id="viewer" hidden>
+  <header id="topbar">
+    <button id="sessions-btn" type="button" title="Back to the session list">Sessions</button>
+    <span id="harness" class="harness" title="Harness that wrote the transcript"></span>
+    <span id="session-id" class="mono" title="Session id"></span>
+    <span class="stat"><b id="stat-agents">0</b> agents</span>
+    <span class="stat"><b id="stat-events">0</b> events</span>
+    <span class="stat"><b id="stat-span">0s</b></span>
+    <span class="stat"><b id="stat-tokens">0</b> out tokens</span>
+    <span class="stat" title="Accumulated context: every agent's latest call, finished agents included"><b id="stat-context">0</b> total context</span>
+  </header>
+
+  <main id="grid">
+    <section id="map-panel" class="panel">
+      <div class="panel-head">
+        <h2>Agent map</h2>
+        <button id="show-all-btn" type="button" hidden>Show all agents</button>
+        <button id="context-btn" type="button" aria-haspopup="dialog" title="Context usage per agent over the session">Context</button>
+      </div>
+      <div id="map" class="panel-body" tabindex="-1">
+        <svg id="map-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div id="map-boxes"></div>
+      </div>
+    </section>
+
+    <section id="feed-panel" class="panel">
+      <div class="panel-head">
+        <h2>Conversation</h2>
+        <div class="filters">
+          <label><input type="checkbox" data-filter="thinking"> thinking</label>
+          <label><input type="checkbox" data-filter="tools" checked> tools</label>
+          <label><input type="checkbox" data-filter="deliveries" checked> deliveries</label>
+          <label><input type="checkbox" data-filter="system" checked> system</label>
+        </div>
+      </div>
+      <div id="feed" class="panel-body" tabindex="0" aria-label="Conversation events"></div>
+      <div id="feed-hint" role="status" hidden>Scroll down again for latest ↓</div>
+      <div id="feed-bar" class="panel-foot">
+        <button id="details-toggle" type="button" aria-controls="details-panel" aria-expanded="false">Details</button>
+        <button id="clear-focus-btn" type="button" hidden>All agents</button>
+        <button id="context-btn-narrow" type="button" aria-haspopup="dialog">Context</button>
+      </div>
+    </section>
+
+    <section id="details-panel" class="panel">
+      <div class="panel-head">
+        <h2>Details</h2>
+        <button id="details-close" type="button">← Conversation</button>
+        <button id="jump-btn" type="button" hidden>Jump to other agent</button>
+      </div>
+      <div id="details" class="panel-body"><p class="muted">Select an event.</p></div>
+    </section>
+  </main>
+
+  <section id="timeline-panel">
+    <div id="timeline-track"><canvas id="timeline"></canvas></div>
+  </section>
+
+  <footer id="controls">
+    <button id="play-btn" type="button" title="Play / pause (Space)" aria-label="Play">▶</button>
+    <span class="step-group">
+      <button id="step-back" type="button" title="Previous event (←)" aria-label="Previous event">⏮</button>
+      <button id="step-fwd" type="button" title="Next event (→)" aria-label="Next event">⏭</button>
+    </span>
+    <input id="scrubber" type="range" aria-label="Event position" min="0" max="0" value="0" step="1">
+    <span id="position" class="mono">0 / 0</span>
+    <button id="live-btn" type="button" class="live" hidden title="Follow this session as it is written">Live</button>
+    <label>Speed
+      <select id="speed">
+        <option value="0.5">0.5x</option>
+        <option value="1">1x</option>
+        <option value="2" selected>2x</option>
+        <option value="4">4x</option>
+        <option value="8">8x</option>
+        <option value="16">16x</option>
+        <option value="32">32x</option>
+      </select>
+    </label>
+    <label>Pacing
+      <select id="pacing">
+        <option value="even" selected>Even steps</option>
+        <option value="real">Real time (capped)</option>
+      </select>
+    </label>
+  </footer>
+
+  <dialog id="context-dialog" aria-labelledby="context-title">
+    <div class="dialog-head">
+      <h2 id="context-title">Context usage</h2>
+      <span id="context-sub" class="muted"></span>
+      <button id="context-close" type="button" aria-label="Close">✕</button>
+    </div>
+    <div id="context-chart">
+      <canvas id="context-canvas" aria-label="Stacked area chart of context tokens per agent by event"></canvas>
+      <div id="context-tip" hidden></div>
+    </div>
+    <div id="context-table-wrap">
+      <table id="context-table">
+        <thead><tr><th>Agent</th><th>At cursor</th><th>Peak</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </dialog>
+</section>
+
+<input id="file-input" type="file" multiple accept=".jsonl,.json" hidden>
+<div id="drop-hint" hidden>Drop transcript files</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "public": "app",
+  "cleanUrls": false,
+  "directoryListing": false,
+  "redirects": [
+    { "source": "/", "destination": "/app/" }
+  ],
+  "rewrites": [
+    { "source": "/app", "destination": "/index.html" },
+    { "source": "/app/", "destination": "/index.html" },
+    { "source": "/app/:path*", "destination": "/:path*" }
+  ]
+}

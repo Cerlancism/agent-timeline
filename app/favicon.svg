@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <title>Agent Timeline</title>
+  <rect x="0.5" y="0.5" width="31" height="31" rx="6" fill="#000" stroke="#383838"/>
+  <path d="M10 10C16 10 12 22 20 22H26" fill="none" stroke="#34d17a" stroke-width="3" stroke-linecap="round"/>
+  <path d="M6 10H26" fill="none" stroke="#3fa0ff" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="6" cy="10" r="3" fill="#3fa0ff"/>
+  <circle cx="26" cy="10" r="3" fill="#e8e8e8"/>
+  <circle cx="26" cy="22" r="3" fill="#34d17a"/>
+</svg>

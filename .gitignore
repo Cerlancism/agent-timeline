@@ -1,0 +1,10 @@
+# Playwright CLI output (may contain credentials)
+.playwright-cli/
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Local Edge launcher
+open-playwright-edge.bat
+.playwright/cli.config.json
+.memory/

@@ -1,0 +1,9 @@
+#:schema https://developers.openai.com/codex/config-schema.json
+
+# Repository-specific Codex overrides belong here.
+# Unset options inherit user-level settings and client defaults.
+# Repository instructions live in AGENTS.md (linked to CLAUDE.md).
+# Shared skills are available through .agents/skills.
+# Shared agent memory lives in .memory/ (see AGENTS.md, Agent Memory).
+codex_git_commit = true
+commit_attribution = "dynamic"

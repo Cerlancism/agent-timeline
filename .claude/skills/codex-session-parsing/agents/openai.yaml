@@ -1,0 +1,3 @@
+interface:
+  display_name: "Codex Session Parsing"
+  short_description: "Inspect local Codex transcripts and agent activity"

@@ -1,0 +1,29 @@
+{
+  // Matches .gitattributes (`* text=auto eol=lf`). This machine has
+  // core.autocrlf=true globally, so without both, editing a .bash script here
+  // reintroduces CRLF and bash fails it with "bad interpreter: ...^M".
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "terminal.integrated.enablePersistentSessions": false,
+  "terminal.integrated.defaultProfile.windows": "Git Bash",
+  "explorer.copyRelativePathSeparator": "/",
+  "[log]": {
+    "files.trimTrailingWhitespace": false
+  },
+  "[plaintext]": {
+    "files.trimTrailingWhitespace": false
+  },
+  "[markdown]": {
+    "files.trimTrailingWhitespace": false
+  },
+  // Subtitles open in the Log language mode: it colourises timestamps and
+  // copes with long files better than plaintext.
+  "files.associations": {
+    "*.srt": "log",
+    "*.ass": "log",
+    "*.vtt": "log",
+    "*.bash": "shellscript",
+    "*.jsonl": "jsonl"
+  }
+}
