@@ -17,8 +17,6 @@
   "[markdown]": {
     "files.trimTrailingWhitespace": false
   },
-  // Subtitles open in the Log language mode: it colourises timestamps and
-  // copes with long files better than plaintext.
   "files.associations": {
     "*.srt": "log",
     "*.ass": "log",
