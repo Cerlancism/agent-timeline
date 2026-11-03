@@ -26,7 +26,7 @@ https://github.com/user-attachments/assets/2369009a-3790-46fe-bd7f-46da7cbe19e9
 Agent Timeline reads the transcripts your agents already write:
 
 - **Claude Code**: `~/.claude/projects`.
-- **Codex**: `~/.codex/sessions` and `~/.codex/archived_sessions` (or your custom `CODEX_HOME`).
+- **Codex**: `~/.codex`, covering `sessions` and `archived_sessions`, or your custom `CODEX_HOME`. Token totals are the recorded figures: forks can inherit events, so they are not deduplicated family usage or billing figures.
 
 There are no hooks, MCP servers, plugins or telemetry to set up, so sessions recorded before you found it work just as well. Add both harnesses' directories to browse them side by side, each session labeled with its harness. Support for more agent harnesses is on the way.
 
@@ -62,8 +62,6 @@ On the web interface and in either local mode, "Open files" or drag and drop ope
 
 - **Claude Code**: the session's `.jsonl` together with its `agent-*.jsonl` and `agent-*.meta.json` files. Filenames identify each file's role.
 - **Codex**: a root rollout and its descendant rollout files. Filenames may be changed because identity comes from session metadata. Codex CLI `exec --json` output and analysis exports are not rollout files.
-
-Note on Codex token totals: forks can include inherited events, so recorded token totals are not deduplicated family usage or billing figures.
 
 ## Documentation
 

@@ -616,6 +616,7 @@ All paths below are relative to the repository root.
 | `serve.json` | Local static-serving root, route rewrites, redirect, and directory-listing configuration |
 | `index.html` | Root entry point forwarding to the app, with link and meta-refresh fallbacks |
 | `.nojekyll` | Static GitHub Pages publishing marker |
+| `.gitattributes` | Line-ending normalization: text files are stored and checked out with LF, and the preview image is marked binary |
 | `README.md` | Project introduction and documentation entry points |
 | `LICENSE` | MIT License |
 | `docs/specification.md` | Implemented features, data interpretation, operational requirements, and implementation reference |

@@ -8,9 +8,6 @@
   "terminal.integrated.enablePersistentSessions": false,
   "terminal.integrated.defaultProfile.windows": "Git Bash",
   "explorer.copyRelativePathSeparator": "/",
-  "[log]": {
-    "files.trimTrailingWhitespace": false
-  },
   "[plaintext]": {
     "files.trimTrailingWhitespace": false
   },
@@ -18,9 +15,6 @@
     "files.trimTrailingWhitespace": false
   },
   "files.associations": {
-    "*.srt": "log",
-    "*.ass": "log",
-    "*.vtt": "log",
     "*.bash": "shellscript",
     "*.jsonl": "jsonl"
   }
