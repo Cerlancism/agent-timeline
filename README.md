@@ -14,6 +14,9 @@ Explore a long multi-agent run at a glance, from the orchestrator down to its pa
 
 Tick several sessions in the list to compare them on one timeline, their agents and events interleaved by time.
 
+## Demo
+https://github.com/user-attachments/assets/2369009a-3790-46fe-bd7f-46da7cbe19e9
+
 ## Works with what you already have
 
 Agent Timeline reads the transcripts your agents already write: Claude Code's under `~/.claude/projects`, and Codex's under `~/.codex/sessions` and `~/.codex/archived_sessions` (or your custom `CODEX_HOME`). There are no hooks, MCP servers, plugins or telemetry to set up, so sessions recorded before you found it work just as well. Add both harnesses' directories to browse them side by side, each session labeled with its harness. Support for more agent harnesses is on the way.
