@@ -81,7 +81,7 @@ The same files can be hosted without a build or backend. Public hosting must use
 
 The root `.nojekyll` marker prevents Jekyll processing. The root `index.html` forwards visitors to `app/`; its JavaScript redirect preserves the query string and fragment, while its meta-refresh fallback simply opens `app/`. `serve.json` configures the local `serve` package and has no effect on GitHub Pages.
 
-Both the application page and the root entry page carry a page description and Open Graph and Twitter card metadata so that shared links unfurl with the title, a short description, and a preview image. Neither page names its own URL, so crawlers take the shared link's address as the page URL. Both pages reference the same 1200 by 630 pixel preview image at `https://cerlancism.github.io/agent-timeline/app/og-image.png`, written out in full because link crawlers do not resolve relative paths; this address must be updated if the site is published elsewhere. The image is a static rendering of the icon, the title, and a one-sentence description on the pure black background; its source is `docs/og-card.html`, a self-contained page sized to the image, which is screenshotted at a 1200 by 630 viewport whenever that copy changes.
+Both the application page and the root entry page carry a page description and Open Graph and Twitter card metadata so that shared links unfurl with the title, a short description, and a preview image. Neither page names its own URL, so crawlers take the shared link's address as the page URL. Both pages reference the same 1200 by 630 pixel preview image at `https://cerlancism.github.io/agent-timeline/app/og-image.png`, written out in full because link crawlers do not resolve relative paths; this address must be updated if the site is published elsewhere. The image is a static rendering of the icon, the title, and a one-sentence description on the pure black background; its source is `app/og-card.html`, a self-contained page sized to the image, which is screenshotted at a 1200 by 630 viewport whenever that copy changes.
 
 ### Session URLs and browser navigation
 
@@ -604,6 +604,7 @@ All paths below are relative to the repository root.
 | `app/styles.css` | Pure-black visual system, layout, responsive panels, event and syntax colors, focus/selection states, and reduced-motion rules |
 | `app/favicon.svg` | Scalable branch-graph browser icon shared by the app and root entry page |
 | `app/og-image.png` | 1200 by 630 pixel link preview image referenced by the Open Graph metadata of the app and root entry page |
+| `app/og-card.html` | Self-contained source page for the link preview image, screenshotted at 1200 by 630 |
 | `app/app.js` | State, model construction, relationship resolution, rendering, interaction, playback, session navigation, and live orchestration |
 | `app/transcripts.mjs` | Harness registry and interface, JSON-lines reading and format detection, harness-aware prompt summaries, working-directory extraction, and search matching |
 | `app/claude.mjs` | Pure Claude Code record trimming, subagent reference discovery, user-text classification, tool roles and titles, and spawn and stop result interpretation |
@@ -623,7 +624,6 @@ All paths below are relative to the repository root.
 | `README.md` | Project introduction and documentation entry points |
 | `LICENSE` | MIT License |
 | `docs/specification.md` | Implemented features, data interpretation, operational requirements, and implementation reference |
-| `docs/og-card.html` | Self-contained source page for the link preview image, screenshotted at 1200 by 630 |
 | `docs/design.md` | Visual rationale, complete component/state inventory, exact color and typography reference, review standards, and separately identified future design possibilities |
 
 ### Verification expectations
