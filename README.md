@@ -1,18 +1,18 @@
 # Agent Timeline
 
-Observe what your coding agents actually do, while they work or long after. Agent Timeline is a session viewer for agent observability across agent harnesses such as Claude Code and Codex (with more to come). It turns their transcripts into an interactive map and timeline of the main agent and every subagent: who spawned whom, what each one was asked, which tools it ran, and how work and messages flowed between them.
+Observe what your coding agents actually do, while they work or long after a session ends. Agent Timeline is a session viewer for agent observability across agent harnesses such as Claude Code and Codex (with more to come). It turns their transcripts into an interactive map and timeline of the main agent and every subagent: who spawned whom, what each one was asked, which tools it ran, and how work and messages flowed between them.
 
-Explore a long multi-agent run at a glance, from the orchestrator down to its parallel subagents, inspect any prompt, reply or tool call in full, replay the session step by step to debug what went wrong, or monitor one live as it unfolds. With the whole run laid out, it is easy to review what each agent changed, analyze where time, tokens and context went, and carry those insights back into your context engineering: prompts, skills, docs, and how you orchestrate agents.
+Explore a long multi-agent run at a glance, from the orchestrator down to its parallel subagents, then inspect any prompt, reply or tool call in full. Replay the session step by step to debug what went wrong, or monitor one live as it unfolds. With the whole run laid out, it is easy to review what each agent changed and analyze where time, tokens and context went. Carry those insights back into your context engineering: prompts, skills, docs, and how you orchestrate agents.
 
 ## What it shows
 
 - **Agent map**: the main session and every subagent it spawned, the messages that passed between them, and each agent's context size and token usage.
 - **Conversation**: every agent's events merged in time order, played back step by step.
-- **Details**: the selected event in full, from prompts and replies to tool calls with their results and edits as before and after.
+- **Details**: the selected event in full, from prompts and replies to tool calls with their results and edits shown before and after.
 - **Timeline**: one row per agent, showing when each was active and the flow of messages between them.
 - **Context chart**: how full every agent's context window grew across the session, compactions included.
 
-Tick several sessions in the list to compare them on one timeline, their agents and events interleaved by time.
+Tick several sessions in the list to compare them on one timeline, with their agents and events interleaved by time.
 
 ## Demo
 https://github.com/user-attachments/assets/2369009a-3790-46fe-bd7f-46da7cbe19e9
@@ -25,7 +25,7 @@ Agent Timeline is free, open source and local-first: everything runs privately a
 
 ## Web Interface: https://cerlancism.github.io/agent-timeline/app
 
-No setup or sign-up needed. In Chrome or Edge, choose "Add directory" and paste the suggested Claude or Codex path into the picker; in other browsers, open transcript files (see [Opening transcript files](#opening-transcript-files)). Transcripts are read in the browser and never uploaded.
+No setup or sign-up needed. In Chrome or Edge, choose "Add directory", paste the suggested Claude or Codex path into the picker, and click "Allow" when the browser asks to let the site view and copy files; in other browsers, open transcript files (see [Opening transcript files](#opening-transcript-files)). Transcripts are read in the browser and never uploaded.
 
 ## Running it locally
 
