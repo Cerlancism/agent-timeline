@@ -617,6 +617,7 @@ All paths below are relative to the repository root.
 | `index.html` | Root entry point forwarding to the app, with link and meta-refresh fallbacks |
 | `.nojekyll` | Static GitHub Pages publishing marker |
 | `README.md` | Project introduction and documentation entry points |
+| `LICENSE` | MIT License |
 | `docs/specification.md` | Implemented features, data interpretation, operational requirements, and implementation reference |
 | `docs/design.md` | Visual rationale, complete component/state inventory, exact color and typography reference, review standards, and separately identified future design possibilities |
 
