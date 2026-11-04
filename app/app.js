@@ -165,6 +165,8 @@ function buildSessionModel(loaded) {
     const pending = new Map(); // call IDs are scoped to a thread
     const ag = agents.get(agentId);
     const seenMsg = new Set();
+    // The effort in force for this agent's replies; Codex records it in turn contexts, Claude per reply.
+    let effort = '';
     let lastTime = 0;
     let firstPrompt = true;
     const push = (ev) => {
@@ -215,6 +217,7 @@ function buildSessionModel(loaded) {
       const time = timeOf(r);
       if (r.type === 'turn-context') {
         ag.model = r.model || ag.model;
+        effort = r.effort || effort;
         if (r.effort && !ag.efforts.includes(r.effort)) ag.efforts.push(r.effort);
       } else if (r.type === 'usage') {
         push({ type: 'system', time, title: 'token usage', text: r.content, tokens: r.tokens, context: r.context, record: r });
@@ -223,6 +226,7 @@ function buildSessionModel(loaded) {
       } else if (r.type === 'assistant') {
         const m = r.message;
         if (m.model) ag.model = m.model;
+        effort = r.effort || effort;
         if (r.effort && !ag.efforts.includes(r.effort)) ag.efforts.push(r.effort);
         let tokens = 0;
         let context = 0;
@@ -251,9 +255,12 @@ function buildSessionModel(loaded) {
             }
             if (b.id) pending.set(b.id, ev);
           }
+          if (ev) {
+            ev.model = m.model || ag.model;
+            if (effort) ev.effort = effort;
+          }
           if (ev && tokens) {
             ev.tokens = tokens;
-            ev.model = m.model;
             tokens = 0;
           }
           if (ev && context) {
@@ -1176,13 +1183,20 @@ function renderDetails(ev) {
   }
   const agentCell = el('span', '', ag.label);
   agentCell.style.color = ag.color;
-  row('agent', agentCell);
+  row('name', agentCell);
+  // The main session's placeholder type is not an agent type.
+  if (ag.type && !(ag.type === 'session' && !ag.parentId)) row('agent', ag.type);
+  // Replies carry the model and effort they ran with; other events show the agent's.
+  const model = ev.model || ag.model;
+  const effort = ev.effort || ag.efforts.join(', ');
+  if (model) row('model', model);
+  if (effort) row('effort', effort);
   row('type', ev.type);
   if (ev.tool) row('tool', ev.tool);
   row('time', new Date(ev.time).toISOString().replace('T', ' ').replace('Z', ' UTC'));
   // A result recorded earlier than its call (clocks can differ between a harness's time sources) has no known duration.
   if (ev.endTime != null && ev.endTime >= ev.time) row('duration', fmtDur(ev.endTime - ev.time));
-  if (ev.tokens) row('output tokens', fmtNum(ev.tokens) + (ev.model ? ` (${ev.model})` : ''));
+  if (ev.tokens) row('output tokens', fmtNum(ev.tokens));
   if (LINK_TYPES.has(ev.type)) {
     const span = el('span');
     const a = ev.from ? agents.get(ev.from) : null;
@@ -1565,6 +1579,48 @@ function applyDelta(oldPos, newPos) {
   else for (let i = newPos + 1; i <= oldPos; i++) step(i, -1);
 }
 
+/**
+ * Top bar figures up to the playback position, so they grow and shrink with the timeline; the
+ * tooltips give the loaded model's totals.
+ */
+function updateTopStats() {
+  const model = state.model;
+  const { events, agentList } = model;
+  const N = events.length;
+  const i = state.pos;
+  let agents = 0;
+  let tokens = 0;
+  for (const s of stats.agents.values()) {
+    if (s.events > 0) agents++;
+    tokens += s.tokens;
+  }
+  const ctx = contextSeries().totals;
+  const set = (id, text, total) => {
+    $(id).textContent = text;
+    $(id).parentElement.dataset.total = total;
+  };
+  set('stat-agents', fmtNum(agents), `${fmtNum(agentList.length)} agents in total`);
+  set('stat-events', fmtNum(i + 1), `${fmtNum(N)} events in total`);
+  set('stat-span', i >= 0 ? fmtDur(events[i].time - events[0].time) : '0s',
+    N ? `${fmtDur(events[N - 1].time - events[0].time)} from first to last event` : '');
+  set('stat-tokens', fmtNum(tokens), `${fmtNum(model.totalTokens)} out tokens in total`);
+  set('stat-context', fmtNum(i >= 0 ? ctx[i] : 0), `${fmtNum(N ? ctx[N - 1] : 0)} at the last event`);
+  const last = i >= 0 ? new Date(events[i].time) : null;
+  $('stat-last').textContent = last ? fmtLocalStamp(last) : '-';
+  $('stat-last').parentElement.title = last ? `Local time of the event at the playback position: ${last.toLocaleString()}\nLast event: ${new Date(events[N - 1].time).toLocaleString()}` : '';
+  for (const id of ['stat-agents', 'stat-events', 'stat-span', 'stat-tokens', 'stat-context']) {
+    const el = $(id).parentElement;
+    el.title = [el.dataset.note, `At the playback position; ${el.dataset.total}.`].filter(Boolean).join('\n');
+  }
+}
+
+/** Local time of day, with the date added when it is not today. */
+function fmtLocalStamp(d) {
+  const time = d.toLocaleTimeString([], { hour12: false });
+  if (d.toDateString() === new Date().toDateString()) return time;
+  return `${d.toLocaleDateString([], { month: 'short', day: 'numeric', year: d.getFullYear() === new Date().getFullYear() ? undefined : 'numeric' })} ${time}`;
+}
+
 function seek(i, { select = false, manual = false, animate = false, edge = false } = {}) {
   if (!state.model) return;
   const N = state.model.events.length;
@@ -1577,6 +1633,7 @@ function seek(i, { select = false, manual = false, animate = false, edge = false
     updateFeed(old, i);
     keepFeedPlace(feedTop);
     updateMap(stats.agents, stats.links);
+    updateTopStats();
     drawTimeline();
     drawContextChart();
     revealTimelineRow();
@@ -1727,14 +1784,8 @@ function installModel(loadedList, { keepState = false } = {}) {
     idEl.textContent = model.sessions[0].id;
     idEl.title = 'Session id';
   }
-  $('stat-agents').textContent = model.agentList.length;
-  $('stat-events').textContent = fmtNum(N);
-  $('stat-span').textContent = N ? fmtDur(model.events[N - 1].time - model.events[0].time) : '0s';
-  $('stat-tokens').textContent = fmtNum(model.totalTokens);
   const tokenNotes = HARNESSES.filter((h) => h.TOKEN_NOTE && model.sessions.some((s) => harnessNamed(s.harness) === h)).map((h) => h.TOKEN_NOTE);
-  $('stat-tokens').parentElement.title = ['Recorded output tokens across loaded agents.', ...tokenNotes].join(' ');
-  const ctxTotals = contextSeries().totals;
-  $('stat-context').textContent = fmtNum(N ? ctxTotals[N - 1] : 0);
+  $('stat-tokens').parentElement.dataset.note = ['Recorded output tokens across loaded agents.', ...tokenNotes].join(' ');
   $('scrubber').max = Math.max(0, N - 1);
   // Panel height = rows + padding + the 1px top border, so a timeline that fits shows no vertical
   // scrollbar; a graph wider than the panel gets room for its horizontal scrollbar.
@@ -1761,6 +1812,7 @@ function installModel(loadedList, { keepState = false } = {}) {
     }
   }
   seek(target, { select: !keepState });
+  updateTopStats();
   if (keepState) {
     // The interim seek to the old reach must not count as returning to the live edge.
     if (prevBehind && nextVisible(state.pos, 1) >= 0) state.liveBehind = true;
