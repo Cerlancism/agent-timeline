@@ -40,7 +40,7 @@ For visual changes, also check the landing page and populated viewer at desktop 
 
 ## Commit & Pull Request Guidelines
 
-Follow the history's concise prefixes: `feat:`, `docs:`, and `chore:`. Keep commits focused. PRs should describe behavior changes, list verification performed, link relevant issues, and include screenshots for visual changes.
+Follow [CONTRIBUTING.md](CONTRIBUTING.md) for commit, pull request, and AI co-author attribution guidelines.
 
 ## Agent Memory
 

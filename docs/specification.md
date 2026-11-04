@@ -622,6 +622,7 @@ All paths below are relative to the repository root.
 | `.nojekyll` | Static GitHub Pages publishing marker |
 | `.gitattributes` | Line-ending normalization: text files are stored and checked out with LF, and the preview image is marked binary |
 | `README.md` | Project introduction and documentation entry points |
+| `CONTRIBUTING.md` | Commit, pull request, and AI agent co-author attribution guidelines |
 | `LICENSE` | MIT License |
 | `docs/specification.md` | Implemented features, data interpretation, operational requirements, and implementation reference |
 | `docs/design.md` | Visual rationale, complete component/state inventory, exact color and typography reference, review standards, and separately identified future design possibilities |
