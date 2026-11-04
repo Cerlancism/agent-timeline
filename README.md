@@ -50,9 +50,8 @@ npx serve -l tcp://127.0.0.1:8765
 Any browser, including for remote or WSL transcripts. A small dependency-free Node server serves the page and reads the directory for it, so no directory mounting is needed.
 
 ```
-node server.mjs # ~/.claude/projects on http://127.0.0.1:8765/app/
-node server.mjs --root /path/to/projects --port 8766
-node server.mjs --root /path/to/.codex --port 8766
+node server.mjs # ~/.claude/projects and ~/.codex, whichever exist, on http://127.0.0.1:8765/app/
+node server.mjs --root /path/to/projects --root /path/to/.codex --port 8766
 ```
 
 Run it where the transcripts are and open the printed URL. For transcripts inside a WSL distribution, start the server in that distribution and open the same localhost URL from the Windows browser. The server exposes the transcripts under its root without authentication, so leave it on the loopback address unless you trust the network. Use `--host` to bind elsewhere, which prints a warning.

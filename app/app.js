@@ -2007,7 +2007,9 @@ function setSourceLabel() {
   const src = $('source');
   const server = state.source && state.source.kind === 'server';
   if (server) {
-    src.textContent = `Source: server · ${state.source.root} (${state.source.count} sessions)`;
+    src.textContent = state.source.root
+      ? `Source: server · ${state.source.root} (${state.source.count} sessions)`
+      : 'Source: server · no transcripts directory found yet';
     src.title = 'The transcripts directory is read by the Node server that serves this page';
   } else if (state.scan) {
     const count = state.directories.filter((f) => f.scan).length;

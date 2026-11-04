@@ -4,7 +4,8 @@
 //
 // Each harness directory module (claude-fs.mjs, codex-fs.mjs) exports the same interface:
 //   HARNESS                  the harness label, matching NAME in its transcript module
-//   DIRECTORY_HINT              { windows, posix } default directory for the Add directory dialog
+//   DIRECTORY_HINT           { windows, posix } default directory, for the Add directory dialog and
+//                            for server mode, which looks for the POSIX path under the home directory
 //   scan(root)               a scan { harness, sessions, root, ... } of the picked directory, or null
 //                            when it does not look like this harness's layout
 //   agentCount(scan, session)
@@ -65,6 +66,14 @@ export function suggestedPath(harness) {
   const p = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '';
   const hint = directoriesFor(harness).DIRECTORY_HINT;
   return /win/i.test(p) ? hint.windows : hint.posix;
+}
+
+/**
+ * Every harness's default directory as path segments under the home directory, taken from the POSIX
+ * form of its hint, for server mode to find transcripts without being told where they are.
+ */
+export function homeDirectories() {
+  return DIRECTORIES.map((d) => ({ harness: d.HARNESS, segments: d.DIRECTORY_HINT.posix.replace(/^~\/?/, '').split('/').filter(Boolean) }));
 }
 
 /** Ask the user for the transcripts directory and remember it. */

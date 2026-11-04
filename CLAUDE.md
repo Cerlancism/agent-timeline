@@ -20,7 +20,7 @@ Agent Timeline is a browser-only viewer for Claude Code and Codex transcripts, b
 ## Build, Test, and Development Commands
 
 - `npx serve -l tcp://127.0.0.1:8765`: run from the repository root, then open `http://127.0.0.1:8765/app/`. `serve.json` serves only viewer files; the page mounts the directory itself.
-- `node server.mjs [--root <directory>] [--port 8765] [--host 127.0.0.1]`: server mode, which reads the directory for the page; open the printed URL. Use a spare port while `serve` is running.
+- `node server.mjs [--root <directory>]... [--port 8765] [--host 127.0.0.1]`: server mode, which reads the directories for the page (by default `~/.claude/projects` and `~/.codex`, whichever exist); open the printed URL. Use a spare port while `serve` is running.
 - `node --check app/app.js`: check JavaScript syntax; repeat for each changed `.js` or `.mjs` file.
 - `node tests/check.mjs`: synthetic parser and filesystem checks for both harnesses; reads no personal transcripts.
 

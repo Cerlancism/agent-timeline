@@ -57,8 +57,7 @@ export async function connectServer() {
   }
   const source = {
     kind: 'server',
-    name: info.name,
-    root: info.root,
+    root: (info.roots || []).join(', '),
     count: info.sessions,
     async list(opts) {
       const page = await getJson(apiUrl('sessions', opts));

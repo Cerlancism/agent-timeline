@@ -4,10 +4,12 @@
 // watching sessions from another machine or environment (for example transcripts inside WSL
 // viewed from a Windows browser). Everything is read-only; nothing is written to the directory.
 //
-//   node server.mjs [--root <directory>] [--port 8765] [--host 127.0.0.1]
+//   node server.mjs [--root <directory>]... [--port 8765] [--host 127.0.0.1]
 //
-// The root defaults to ~/.claude/projects. The host defaults to loopback; binding another
-// address exposes every transcript under the root to that network without authentication.
+// --root may be repeated; the roots' sessions are listed together. Without it, every harness's
+// default directory that exists is used (~/.claude/projects and ~/.codex). The host defaults to
+// loopback; binding another address exposes every transcript under the roots to that network
+// without authentication.
 
 import { createServer } from 'node:http';
 import { promises as fs } from 'node:fs';
@@ -15,7 +17,7 @@ import { homedir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-import { scanDirectory, listSessions, loadSession, sessionChanged } from './app/localfs.mjs';
+import { scanDirectory, combineScans, homeDirectories, listSessions, loadSession, sessionChanged } from './app/localfs.mjs';
 import { SERVER_MARK } from './app/remote.mjs';
 
 const APP_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'app');
@@ -35,18 +37,18 @@ const SAFE_NAME_RE = /^[^/\\]+$/;
 // ---- Command line ----------------------------------------------------------
 
 function parseArgs(argv) {
-  const opts = { root: '', port: 8765, host: '127.0.0.1' };
+  const opts = { roots: [], port: 8765, host: '127.0.0.1' };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     const next = () => argv[++i];
-    if (a === '--root' || a === '-r') opts.root = next();
-    else if (a.startsWith('--root=')) opts.root = a.slice(7);
+    if (a === '--root' || a === '-r') opts.roots.push(next());
+    else if (a.startsWith('--root=')) opts.roots.push(a.slice(7));
     else if (a === '--port' || a === '-p') opts.port = parseInt(next(), 10);
     else if (a.startsWith('--port=')) opts.port = parseInt(a.slice(7), 10);
     else if (a === '--host' || a === '-H') opts.host = next();
     else if (a.startsWith('--host=')) opts.host = a.slice(7);
     else if (a === '--help' || a === '-h') {
-      console.log('usage: node server.mjs [--root <directory>] [--port 8765] [--host 127.0.0.1]');
+      console.log('usage: node server.mjs [--root <directory>]... [--port 8765] [--host 127.0.0.1]');
       process.exit(0);
     } else {
       console.error(`unknown option: ${a}`);
@@ -60,14 +62,17 @@ function parseArgs(argv) {
   return opts;
 }
 
-async function defaultRoot() {
-  const projects = path.join(homedir(), '.claude', 'projects');
+async function isDirectory(p) {
   try {
-    if ((await fs.stat(projects)).isDirectory()) return projects;
+    return (await fs.stat(p)).isDirectory();
   } catch {
-    /* fall through */
+    return false;
   }
-  return path.join(homedir(), '.claude');
+}
+
+/** Every harness's default directory under the home directory, such as ~/.claude/projects and ~/.codex. */
+function defaultRoots() {
+  return homeDirectories().map(({ segments }) => path.join(homedir(), ...segments));
 }
 
 // ---- Filesystem handles -----------------------------------------------------
@@ -119,11 +124,34 @@ class DirectoryHandle {
 
 // ---- Source state ----------------------------------------------------------
 
-const source = { root: null, dir: null, scan: null, scanning: null, loaded: new Map() };
+// roots: the directories to read; optional: whether they are the defaults, any of which may be
+// absent; active: the roots the latest scan read.
+const source = { roots: [], optional: false, active: [], scan: null, scanning: null, loaded: new Map() };
+
+/**
+ * Scan every root and combine them as the page does for several mounted directories. Default roots
+ * are looked for again on every scan, so one created later appears after a rescan. A root that
+ * cannot be read is left out; with given roots the scan fails only when none can be read.
+ */
+async function scanRoots() {
+  const present = [];
+  for (const root of source.roots) if (!source.optional || await isDirectory(root)) present.push(root);
+  const results = await Promise.allSettled(present.map((root) => scanDirectory(new DirectoryHandle(root))));
+  const scans = [];
+  const active = [];
+  results.forEach((r, i) => {
+    if (r.status !== 'fulfilled') return;
+    scans.push(r.value);
+    active.push(present[i]);
+  });
+  if (!scans.length && present.length && !source.optional) throw results[0].reason;
+  source.active = active;
+  return combineScans(scans);
+}
 
 async function rescan() {
   if (!source.scanning) {
-    source.scanning = scanDirectory(source.dir).then((scan) => {
+    source.scanning = scanRoots().then((scan) => {
       source.scan = scan;
       return scan;
     }).finally(() => {
@@ -179,7 +207,7 @@ async function api(req, res, route, url) {
   const parts = route.split('/').filter(Boolean);
   if (parts[0] === 'source' && parts.length === 1) {
     const scan = await ensureScan();
-    return json(res, 200, { mode: 'server', name: source.dir.name, root: source.root, sessions: scan.sessions.length });
+    return json(res, 200, { mode: 'server', roots: source.active, sessions: scan.sessions.length });
   }
   if (parts[0] === 'sessions' && parts.length === 1) {
     if (url.searchParams.get('rescan') === '1') await rescan();
@@ -237,14 +265,17 @@ async function handle(req, res) {
 
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
-  source.root = path.resolve(opts.root || (await defaultRoot()));
-  try {
-    if (!(await fs.stat(source.root)).isDirectory()) throw new Error('not a directory');
-  } catch (e) {
-    console.error(`cannot read transcripts directory ${source.root}: ${e.message}`);
-    process.exit(1);
+  if (opts.roots.length) {
+    source.roots = [...new Set(opts.roots.map((r) => path.resolve(r)))];
+    for (const root of source.roots) {
+      if (await isDirectory(root)) continue;
+      console.error(`cannot read transcripts directory ${root}`);
+      process.exit(1);
+    }
+  } else {
+    source.roots = defaultRoots();
+    source.optional = true;
   }
-  source.dir = new DirectoryHandle(source.root);
   const scan = await rescan();
   const server = createServer((req, res) => {
     handle(req, res).catch((e) => {
@@ -257,7 +288,8 @@ async function main() {
   });
   server.listen(opts.port, opts.host, () => {
     const shown = opts.host.includes(':') ? `[${opts.host}]` : opts.host;
-    console.log(`Agent Timeline: ${scan.sessions.length} sessions under ${source.root}`);
+    if (source.active.length) console.log(`Agent Timeline: ${scan.sessions.length} sessions under ${source.active.join(', ')}`);
+    else console.log(`Agent Timeline: no transcripts yet; looking in ${source.roots.join(', ')} (or pass --root)`);
     console.log(`Open http://${shown}:${server.address().port}/app/`);
     if (opts.host !== '127.0.0.1' && opts.host !== 'localhost' && opts.host !== '::1') {
       console.log('Warning: this address is reachable by other machines; the transcripts are served without authentication.');
