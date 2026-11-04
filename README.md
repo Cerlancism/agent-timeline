@@ -4,7 +4,7 @@ Observe what your coding agents actually do, while they work or long after a ses
 
 Explore a long multi-agent run at a glance, from the orchestrator down to its parallel subagents, then inspect any prompt, reply or tool call in full. Replay the session step by step to debug what went wrong, or monitor one live as it unfolds. With the whole run laid out, it is easy to review what each agent changed and analyze where time, tokens and context went. Carry those insights back into your context engineering: prompts, skills, docs, and how you orchestrate agents.
 
-<img width="800" height="409" alt="agent-timeline-demo-v1-small" src="https://github.com/user-attachments/assets/87d6fadf-fce6-43a8-9ba4-5196aaf3d315" />
+https://github.com/user-attachments/assets/cf93803a-ecce-4828-8ed5-b5f384342f27
 
 ## Web Interface: https://cerlancism.github.io/agent-timeline/app
 
