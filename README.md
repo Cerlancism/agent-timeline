@@ -4,6 +4,8 @@ Observe what your coding agents actually do, while they work or long after a ses
 
 Explore a long multi-agent run at a glance, from the orchestrator down to its parallel subagents, then inspect any prompt, reply or tool call in full. Replay the session step by step to debug what went wrong, or monitor one live as it unfolds. With the whole run laid out, it is easy to review what each agent changed and analyze where time, tokens and context went. Carry those insights back into your context engineering: prompts, skills, docs, and how you orchestrate agents.
 
+<img width="800" height="409" alt="agent-timeline-demo-v1-small" src="https://github.com/user-attachments/assets/87d6fadf-fce6-43a8-9ba4-5196aaf3d315" />
+
 ## Web Interface: https://cerlancism.github.io/agent-timeline/app
 
 No setup or sign-up needed. In Chrome or Edge, choose "Add directory", paste the suggested Claude or Codex path into the picker, and click "Allow" when the browser asks to let the site view and copy files. In other browsers, open transcript files (see [Opening transcript files](#opening-transcript-files)). Transcripts are read in the browser and never uploaded.
@@ -17,9 +19,6 @@ No setup or sign-up needed. In Chrome or Edge, choose "Add directory", paste the
 - **Context chart**: how full every agent's context window grew across the session, compactions included.
 
 Tick several sessions in the list to compare them on one timeline, with their agents and events interleaved by time.
-
-## Demo
-https://github.com/user-attachments/assets/2369009a-3790-46fe-bd7f-46da7cbe19e9
 
 ## Works with what you already have
 
