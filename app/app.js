@@ -2157,8 +2157,47 @@ async function refreshListStatus() {
   }
 }
 
+let listBusyTimer = null;
+let listBusySince = 0;
+const LIST_BUSY_DELAY_MS = 150;
+const LIST_BUSY_MIN_MS = 450;
+
+/**
+ * Mark the session list as refreshing. Automatic reloads show the mark only after a short delay,
+ * so a quick one swaps the rows without anything flashing; an explicit Refresh (`now`) shows it at
+ * once. Once shown, the mark stays long enough to be read.
+ */
+function setListBusy(on, { now = false } = {}) {
+  const landing = $('landing');
+  const shown = landing.classList.contains('refreshing');
+  const show = () => {
+    listBusySince = Date.now();
+    landing.classList.add('refreshing');
+  };
+  $('session-list').setAttribute('aria-busy', on ? 'true' : 'false');
+  clearTimeout(listBusyTimer);
+  if (on) {
+    if (shown) return;
+    if (now) show();
+    else listBusyTimer = setTimeout(show, LIST_BUSY_DELAY_MS);
+    return;
+  }
+  const left = listBusySince + LIST_BUSY_MIN_MS - Date.now();
+  if (shown && left > 0) listBusyTimer = setTimeout(() => landing.classList.remove('refreshing'), left);
+  else landing.classList.remove('refreshing');
+}
+
 async function loadList({ reset = true } = {}) {
   const token = ++state.list.token;
+  if (reset) setListBusy(true);
+  try {
+    await loadListPage(token, reset);
+  } finally {
+    if (token === state.list.token) setListBusy(false);
+  }
+}
+
+async function loadListPage(token, reset) {
   if (!state.source) {
     $('session-list').replaceChildren();
     $('more-btn').hidden = true;
@@ -2168,16 +2207,20 @@ async function loadList({ reset = true } = {}) {
   if (reset) {
     state.list.offset = 0;
     state.list.done = false;
-    $('session-list').textContent = '';
+  } else {
+    $('more-btn').hidden = true;
+    $('list-end').hidden = true;
   }
-  $('more-btn').hidden = true;
-  $('list-end').hidden = true;
   $('more-btn').disabled = true;
   try {
     const { items, done, next } = await state.source.list({ offset: state.list.offset, limit: PAGE, filter: state.list.filter });
     if (token !== state.list.token) return;
     const list = $('session-list');
-    for (const s of items) list.appendChild(sessionRow(s));
+    // A reset keeps the old rows until the new page is ready and swaps them in one step, so
+    // returning to the list or refiltering does not flash an empty list.
+    const rows = items.map(sessionRow);
+    if (reset) list.replaceChildren(...rows);
+    else list.append(...rows);
     state.list.offset = next;
     state.list.done = done;
     $('more-btn').hidden = done;
@@ -2186,7 +2229,9 @@ async function loadList({ reset = true } = {}) {
     if (done && !list.children.length) $('list-end').textContent = state.list.filter ? 'No sessions match' : 'No sessions found';
     else $('list-end').textContent = 'No more sessions';
   } catch (e) {
-    if (token === state.list.token) showMsg('Could not list sessions: ' + (e.message || e), true);
+    if (token !== state.list.token) return;
+    if (reset) $('session-list').replaceChildren();
+    showMsg('Could not list sessions: ' + (e.message || e), true);
   }
 }
 
@@ -2239,12 +2284,13 @@ async function doMount() {
   } finally { button.disabled = false; }
 }
 
-async function backToSessions({ push = true } = {}) {
+async function backToSessions({ push = true, announce = false } = {}) {
   stopLive();
   setPlaying(false);
   showViewer(false);
   setUrlSession(null, push);
   if (state.source) {
+    setListBusy(true, { now: announce });
     try {
       await state.source.rescan();
     } catch {
@@ -2281,7 +2327,7 @@ function wire() {
     if (e.target.files.length) openFileList(e.target.files);
     e.target.value = '';
   });
-  $('refresh-btn').addEventListener('click', () => backToSessions({ push: false }));
+  $('refresh-btn').addEventListener('click', () => backToSessions({ push: false, announce: true }));
   $('more-btn').addEventListener('click', () => loadList({ reset: false }));
   let filterTimer = null;
   $('filter').addEventListener('input', (e) => {

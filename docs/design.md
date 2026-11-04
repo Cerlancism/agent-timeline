@@ -48,7 +48,7 @@ Agent state also has a short text label: wait, run, now, or done. The accessible
 
 The landing page is an index, not a marketing page. A small “Local session explorer” label introduces the title, followed immediately by the mounted source and directory actions. Keep connected directory rows and their Remove directory actions below the heading. Put copyable Claude and Codex path hints in the Add directory dialog, before opening the system picker; keep errors next to the relevant action.
 
-The search bar leads into a ruled Sessions / Latest activity heading. Rows share a common grid: title and optional prompt preview on the left, time, size, and short identifier on the right. The working path occupies its own metadata line, followed by prompt and subagent counts. Long titles and paths truncate with their complete values available in native tooltips. A narrow green rule and the existing live badge identify recent sessions. Hover adds a quiet surface; keyboard focus adds a visible boundary. A loading row stays readable while the surrounding controls and rows fade.
+The search bar leads into a ruled Sessions / Latest activity heading. Rows share a common grid: title and optional prompt preview on the left, time, size, and short identifier on the right. The working path occupies its own metadata line, followed by prompt and subagent counts. Long titles and paths truncate with their complete values available in native tooltips. A narrow green rule and the existing live badge identify recent sessions. Hover adds a quiet surface; keyboard focus adds a visible boundary. A loading row stays readable while the surrounding controls and rows fade. Refreshing the list never empties it: the old rows dim until the new ones replace them, and the heading itself carries the progress, so nothing shifts.
 
 ### Workspace frame
 
@@ -116,6 +116,7 @@ Components here are HTML/CSS groupings, generated DOM, or canvas/SVG marks, not 
 | Selected row | `.session-row.picked` | Blue leading rule and a faint blue surface, deepening on hover or focus; takes precedence over the green live rule |
 | Recent-session badge | `.badge-live`, `.session-row.live` | Compact green badge with pulsing dot and green leading row rule; distinct from the viewer's Live toggle |
 | Session-loading state | `#landing.loading`, `.session-row.chosen` | Other controls and rows fade to 35% opacity and reject pointer input; chosen row stays opaque with a moving blue top edge |
+| List-refresh state | `#landing.refreshing`, `.list-heading-side`, `.list-busy`, `.list-idle` | Previous rows stay in place at 50% opacity until the new page replaces them in one step; a blue sweep runs along the heading rule and Latest activity swaps in place for a blue Refreshing… label |
 | Pagination and empty result | `.landing-foot`, `#more-btn`, `#list-end` | Centered Load more action or muted end/empty/search-result message |
 
 ### Viewer frame and agent map
@@ -191,7 +192,7 @@ The application has one implemented dark scheme. There is no light theme or them
 | `--text` | `#d6d6d6` | Default foreground |
 | `--text-dim` | `#a0a0a0` | Supporting prose, labels, previews, and metadata |
 | `--text-faint` | `#808080` | Timestamps, arrows, counters, and line numbers |
-| `--accent` | `#3fa0ff` | Keyboard focus, selection outlines, range/checkbox accent, and loading marker |
+| `--accent` | `#3fa0ff` | Keyboard focus, selection outlines, range/checkbox accent, loading and refresh markers, and the Refreshing… label |
 | `--danger` | `#ff4d5e` | Summary error status |
 | `--warn` | `#ffb020` | Running agent and reconnecting text |
 | `--ok` | `#34d17a` | Current-agent dot and recent-session leading rule |
@@ -317,11 +318,13 @@ Canvas values are set in `drawTimeline`, separately from CSS card opacity. They 
 | --- | --- |
 | Disabled button | 40% opacity and default cursor |
 | Background rows/controls during session loading | 35% opacity; chosen row remains 100% |
+| Rows during a list refresh | 50% opacity with a 150-millisecond fade; controls stay usable |
 | Revealed entry ahead of playback | 45% opacity; 80% on hover |
 | Live pulse | Green at 45% alpha fades to transparent while its shadow expands from zero to four pixels; 1.6-second loop |
 | Current-agent blink | One-second stepped visibility cycle |
 | Current-agent reduced-motion indication | Static two-pixel green ring at 40% alpha |
 | Loading sweep | Two-pixel-high blue bar, 40% of row width, moving across in a 1.1-second loop; full-width static bar under reduced motion |
+| List-refresh sweep | The same bar and loop running over the rule under the list heading; full-width static rule under reduced motion. Shown after 150 milliseconds for automatic reloads, at once for Refresh, and held for at least 450 milliseconds once shown |
 | Node and link transitions | 150 milliseconds for supported border, background, or stroke changes; disabled under reduced motion |
 | Map transfer animation | Four-pixel-radius dot traveling for 650 milliseconds; disabled under reduced motion |
 

@@ -130,6 +130,22 @@ button.small { padding: 1px 7px; font-size: 11px; vertical-align: 1px; }
 #pick-open-btn:hover { background: #fff; border-color: #fff; }
 .list-heading { display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--line-strong); }
 .session-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+/* While the list restarts, the old rows fade a little, a sweep runs along the heading's rule, and the
+   heading's right label reads Refreshing…; nothing moves, and quick reloads never show it. */
+.list-heading { position: relative; }
+.list-heading-side { display: grid; justify-items: end; }
+.list-heading-side > span { grid-area: 1 / 1; }
+.list-busy { visibility: hidden; color: var(--accent); }
+#landing.refreshing .list-busy { visibility: visible; }
+#landing.refreshing .list-idle { visibility: hidden; }
+#landing.refreshing .list-heading::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; z-index: 1;
+  background: linear-gradient(var(--accent), var(--accent)) no-repeat; background-size: 40% 100%;
+  animation: sweep-rule 1.1s ease-in-out infinite;
+}
+@keyframes sweep-rule { 0% { background-position: -67% 0; } 100% { background-position: 167% 0; } }
+.session-row { transition: opacity .15s; }
+#landing.refreshing .session-row { opacity: .5; }
 .session-row {
   --row-pad-y: 10px;
   --row-pad-x: 12px;
@@ -450,7 +466,7 @@ pre.code.added { background: #04170c; color: #8fe3b0; border-left: 3px solid #1f
 /* ---------- motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   #live-btn.on, .badge-live::before, .agent-box.current .dot { animation: none; }
-  #landing.loading .session-row.chosen::after { animation: none; width: 100%; }
+  #landing.loading .session-row.chosen::after, #landing.refreshing .list-heading::after { animation: none; background-size: 100% 100%; }
   .agent-box.current .dot { box-shadow: 0 0 0 2px rgba(52, 209, 122, .4); }
   * { transition: none !important; }
 }
