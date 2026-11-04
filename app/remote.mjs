@@ -23,11 +23,29 @@ const apiUrl = (route, params) => {
   return url;
 };
 
+/** The Server-Timing metric server.mjs attaches to the files it serves, naming itself. */
+export const SERVER_MARK = 'agent-timeline-server';
+
 /**
- * Return a source backed by the server, or null when the page is not served by server.mjs
- * (plain static hosting answers api/source with an error or with a non-JSON document).
+ * Who served this page, read from the Server-Timing metrics of its own navigation, which needs no
+ * request: 'server' when server.mjs marked it, 'static' when the metrics are readable but unmarked,
+ * and null when the browser does not expose them (an insecure origin such as plain HTTP on a LAN
+ * address, or an older browser).
+ */
+export function pageServedBy(perf = globalThis.performance) {
+  const nav = perf && perf.getEntriesByType ? perf.getEntriesByType('navigation')[0] : null;
+  const timing = nav && nav.serverTiming;
+  if (!Array.isArray(timing)) return null;
+  return timing.some((t) => t.name === SERVER_MARK) ? 'server' : 'static';
+}
+
+/**
+ * Return a source backed by the server, or null when the page is not served by server.mjs. A page
+ * known to be statically hosted makes no request; otherwise api/source is probed, which plain
+ * static hosting answers with an error or with a non-JSON document.
  */
 export async function connectServer() {
+  if (pageServedBy() === 'static') return null;
   let info;
   try {
     const res = await fetch(apiUrl('source'), { cache: 'no-store' });

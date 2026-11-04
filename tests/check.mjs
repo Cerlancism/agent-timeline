@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import { parseLines, summarizeRecords, harnessNamed } from '../app/transcripts.mjs';
 import { scanDirectory, combineScans, listSessions, loadSession, loadFiles, sessionChanged } from '../app/localfs.mjs';
+import { SERVER_MARK, pageServedBy } from '../app/remote.mjs';
 
 const rootId = '11111111-1111-1111-1111-111111111111';
 const childId = '22222222-2222-2222-2222-222222222222';
@@ -168,4 +169,13 @@ const secondClaude = await scanDirectory(dir('project', [file('55555555-5555-555
 const mixed = combineScans([scan, secondClaude]);
 assert.deepEqual(new Set((await listSessions(mixed)).items.map((s) => s.harness)), new Set(['Codex', 'Claude']));
 assert.equal((await loadSession(mixed, '55555555-5555-5555-5555-555555555555')).harness, 'Claude');
-console.log('Claude and Codex parsing, classification, tool roles, summaries, discovery, nested loading, snapshots, live checks, and combined sources passed.');
+// ---- Server-mode detection ---------------------------------------------------
+
+const navigation = (serverTiming) => ({ getEntriesByType: () => [{ serverTiming }] });
+assert.equal(pageServedBy(navigation([{ name: SERVER_MARK }])), 'server');
+assert.equal(pageServedBy(navigation([])), 'static');
+assert.equal(pageServedBy(navigation(undefined)), null); // not exposed: an insecure origin falls back to the probe
+assert.equal(pageServedBy({ getEntriesByType: () => [] }), null);
+assert.equal(pageServedBy(undefined), null);
+
+console.log('Claude and Codex parsing, classification, tool roles, summaries, discovery, nested loading, snapshots, live checks, combined sources, and server-mode detection passed.');

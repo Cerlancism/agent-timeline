@@ -16,6 +16,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { scanDirectory, listSessions, loadSession, sessionChanged } from './app/localfs.mjs';
+import { SERVER_MARK } from './app/remote.mjs';
 
 const APP_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'app');
 const MIME = {
@@ -166,7 +167,8 @@ async function serveStatic(res, rel) {
   try {
     const data = await fs.readFile(file);
     const type = MIME[path.extname(file).toLowerCase()] || 'application/octet-stream';
-    res.writeHead(200, { 'content-type': type, 'cache-control': 'no-cache' });
+    // The Server-Timing mark lets the page recognize server mode without probing the API.
+    res.writeHead(200, { 'content-type': type, 'cache-control': 'no-cache', 'server-timing': SERVER_MARK });
     res.end(data);
   } catch {
     send(res, 404, 'not found', 'text/plain');
