@@ -253,7 +253,7 @@ The feed provides five filters:
 | Tools | On | Includes or hides ordinary tool events; specialized spawn/message/stop events keep their own types |
 | Deliveries | On | Includes or hides delivered message copies in the combined feed |
 | System | On | Includes or hides system events |
-| Usage | Off | Includes or hides token usage events, which Codex records after each response; they also stay hidden while System is off |
+| Usage | Off | Includes or hides token usage events; they also stay hidden while System is off |
 
 Agent focus restricts the feed to events owned by that agent. Delivery copies remain visible while focused even if Deliveries is off. Filters affect conversation visibility and playback eligibility, not the underlying model, overall totals, map, or timeline.
 
