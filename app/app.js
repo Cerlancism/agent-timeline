@@ -42,7 +42,7 @@ const state = {
   playing: false,
   timer: null,
   focus: null, // agent id or null
-  filters: { thinking: false, tools: true, deliveries: true, system: true },
+  filters: { thinking: false, tools: true, deliveries: true, system: true, usage: false },
   autoscroll: true,
   liveBehind: false,
   selected: -1,
@@ -220,7 +220,7 @@ function buildSessionModel(loaded) {
         effort = r.effort || effort;
         if (r.effort && !ag.efforts.includes(r.effort)) ag.efforts.push(r.effort);
       } else if (r.type === 'usage') {
-        push({ type: 'system', time, title: 'token usage', text: r.content, tokens: r.tokens, context: r.context, record: r });
+        push({ type: 'system', time, title: 'token usage', text: r.content, tokens: r.tokens, context: r.context, usage: true, record: r });
       } else if (r.type === 'peer-message') {
         push({ type: 'received', time, title: 'message', text: r.content, from: resolveAgentRef(r.from), to: agentId, delivery: true, record: r });
       } else if (r.type === 'assistant') {
@@ -462,6 +462,7 @@ function isVisible(ev) {
   if (ev.type === 'thinking' && !f.thinking) return false;
   if (ev.type === 'tool' && !f.tools) return false;
   if (ev.type === 'system' && !f.system) return false;
+  if (ev.usage && !f.usage) return false;
   if (state.focus) {
     if (ev.agentId !== state.focus) return false;
   } else if (ev.delivery && !f.deliveries) return false;
@@ -744,6 +745,7 @@ function renderFeed() {
     card.dataset.type = ev.type;
     card.dataset.agent = ev.agentId;
     if (ev.delivery) card.dataset.delivery = '1';
+    if (ev.usage) card.dataset.usage = '1';
     if (ev.isError) card.classList.add('error');
     card.style.setProperty('--agent-color', ag.color);
     card.style.setProperty('--type-color', `var(${TYPE_COLORS[ev.type]})`);
@@ -791,6 +793,7 @@ function applyFilterClasses() {
   feed.classList.toggle('hide-tools', !state.filters.tools);
   feed.classList.toggle('hide-system', !state.filters.system);
   feed.classList.toggle('hide-deliveries', !state.filters.deliveries);
+  feed.classList.toggle('hide-usage', !state.filters.usage);
   feed.classList.toggle('focused', !!state.focus);
 }
 

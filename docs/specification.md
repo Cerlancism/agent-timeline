@@ -245,7 +245,7 @@ Tool previews use the result or a missing-result placeholder. Spawn previews use
 | received | Delivered copy of inter-agent communication |
 | system | Reminders, skill text, editor context, command output, injected text, compactions, or API errors |
 
-The feed provides four filters:
+The feed provides five filters:
 
 | Filter | Initial state | Effect |
 | --- | --- | --- |
@@ -253,6 +253,7 @@ The feed provides four filters:
 | Tools | On | Includes or hides ordinary tool events; specialized spawn/message/stop events keep their own types |
 | Deliveries | On | Includes or hides delivered message copies in the combined feed |
 | System | On | Includes or hides system events |
+| Usage | Off | Includes or hides token usage events, which Codex records after each response; they also stay hidden while System is off |
 
 Agent focus restricts the feed to events owned by that agent. Delivery copies remain visible while focused even if Deliveries is off. Filters affect conversation visibility and playback eligibility, not the underlying model, overall totals, map, or timeline.
 
@@ -431,7 +432,7 @@ Function and custom tool calls retain names, namespaces, call IDs, and decoded a
 
 Turn context supplies the model and reasoning effort. Task lifecycle records and compaction produce system markers. Replacement history is never emitted as new activity, and inherited histories are not sliced using a physical-line interpretation of the history ordinal. Fork/inheritance metadata produces a transcript note explaining attribution limits. Unknown record types are listed in a note instead of assumed to be conversation.
 
-Usage prefers thread-scoped thread_token_usage snapshots, then legacy total_token_usage snapshots, then latest usage per distinct response ID when neither cumulative source exists. Foreign-thread usage and null rate-limit updates are ignored. Successive cumulative snapshots contribute only their change in output tokens, including a signed correction if the recorded total decreases, so the final per-thread count equals the latest recorded total. Usage is shown as system events with provenance and raw numeric counters; context uses the accompanying per-response input tokens, never the cumulative input total. Cached input and reasoning output are subsets and are not added twice. Missing usage provides no usage events. Combined figures sum recorded per-thread contributions; their tooltip and inheritance notes explain that they are not deduplicated family usage or billing figures.
+Usage prefers thread-scoped thread_token_usage snapshots, then legacy total_token_usage snapshots, then latest usage per distinct response ID when neither cumulative source exists. Foreign-thread usage and null rate-limit updates are ignored. Successive cumulative snapshots contribute only their change in output tokens, including a signed correction if the recorded total decreases, so the final per-thread count equals the latest recorded total. Usage is shown as system events, hidden until the Usage filter is ticked, with provenance and raw numeric counters; context uses the accompanying per-response input tokens, never the cumulative input total. Cached input and reasoning output are subsets and are not added twice. Missing usage provides no usage events. Combined figures sum recorded per-thread contributions; their tooltip and inheritance notes explain that they are not deduplicated family usage or billing figures.
 
 Embedded message creation or event/task completion/start times take precedence over envelope timestamps, with file order breaking ties within a thread. Those embedded times can come from a different clock than the envelope, so a tool result can be recorded a second or two before its call; the viewer then shows no duration for that call. Migrated files can flatten envelope times, so ordering across threads and observed spans remain approximate. Recorded task duration is displayed separately from the timeline span. No opaque content is decrypted and no recorded command is executed.
 

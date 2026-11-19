@@ -341,6 +341,7 @@ button.small { padding: 1px 7px; font-size: 11px; vertical-align: 1px; }
 #feed.hide-thinking .card[data-type="thinking"],
 #feed.hide-tools .card[data-type="tool"],
 #feed.hide-system .card[data-type="system"],
+#feed.hide-usage .card[data-usage="1"],
 #feed.hide-deliveries:not(.focused) .card[data-delivery="1"] { display: none; }
 
 .panel-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 5px 10px; border-top: 1px solid var(--line); }
